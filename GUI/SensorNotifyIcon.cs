@@ -28,10 +28,6 @@ namespace OpenHardwareMonitor.GUI {
     private Bitmap bitmap;
     private Graphics graphics;
     private Color color;
-    private Color darkColor;
-    private Brush brush;
-    private Brush darkBrush;
-    private Pen pen;
     private Font font;
     private Font smallFont;
 
@@ -50,9 +46,7 @@ namespace OpenHardwareMonitor.GUI {
         defaultColor = Color.FromArgb(0xff, 0x70, 0x8c, 0xf1);
       }
       Color = settings.GetValue(new Identifier(sensor.Identifier, 
-        "traycolor").ToString(), defaultColor);      
-      
-      this.pen = new Pen(Color.FromArgb(96, Color.Black));
+        "traycolor").ToString(), defaultColor);
 
       ContextMenu contextMenu = new ContextMenu();
       MenuItem hideShowItem = new MenuItem("Hide/Show");
@@ -132,21 +126,7 @@ namespace OpenHardwareMonitor.GUI {
 
     public Color Color {
       get { return color; }
-      set { 
-        this.color = value;
-        this.darkColor = Color.FromArgb(255,
-          this.color.R / 3,
-          this.color.G / 3,
-          this.color.B / 3);
-        Brush brush = this.brush;
-        this.brush = new SolidBrush(this.color);
-        if (brush != null)
-          brush.Dispose();
-        Brush darkBrush = this.darkBrush;
-        this.darkBrush = new SolidBrush(this.darkColor);
-        if (darkBrush != null)
-          darkBrush.Dispose();
-      }
+      set { this.color = value; }
     }
 
     public void Dispose() {      
@@ -156,11 +136,6 @@ namespace OpenHardwareMonitor.GUI {
         icon.Dispose();      
       notifyIcon.Dispose();
 
-      if (brush != null)
-        brush.Dispose();
-      if (darkBrush != null)
-        darkBrush.Dispose();
-      pen.Dispose();
       graphics.Dispose();      
       bitmap.Dispose();
       font.Dispose();
@@ -241,42 +216,9 @@ namespace OpenHardwareMonitor.GUI {
         PixelFormat.Format32bppArgb);
     }
 
-    private Icon CreatePercentageIcon() {      
-      try {
-        graphics.Clear(Color.Transparent);
-      } catch (ArgumentException) {
-        graphics.Clear(Color.Black);
-      }
-      graphics.FillRectangle(darkBrush, 0.5f, -0.5f, bitmap.Width - 2, bitmap.Height);
-      float value = sensor.Value.GetValueOrDefault();
-      float y = 0.16f * (100 - value);
-      graphics.FillRectangle(brush, 0.5f, -0.5f + y, bitmap.Width - 2, bitmap.Height - y);
-      graphics.DrawRectangle(pen, 1, 0, bitmap.Width - 3, bitmap.Height - 1);
-
-      BitmapData data = bitmap.LockBits(
-        new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-        ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-      byte[] bytes = new byte[bitmap.Width * bitmap.Height * 4];
-      Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
-      bitmap.UnlockBits(data);
-
-      return IconFactory.Create(bytes, bitmap.Width, bitmap.Height, 
-        PixelFormat.Format32bppArgb);
-    }
-
     public void Update() {
       Icon icon = notifyIcon.Icon;
-
-      switch (sensor.SensorType) {
-        case SensorType.Load:
-        case SensorType.Control:
-        case SensorType.Level:
-          notifyIcon.Icon = CreatePercentageIcon();
-          break;
-        default:
-          notifyIcon.Icon = CreateTransparentIcon();
-          break;
-      }
+      notifyIcon.Icon = CreateTransparentIcon();
 
       if (icon != null) 
         icon.Dispose();
