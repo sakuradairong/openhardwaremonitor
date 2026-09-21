@@ -152,7 +152,7 @@ namespace OpenHardwareMonitor.GUI {
         case SensorType.Clock:
           return string.Format("{0:F1}", 1e-3f * sensor.Value);
         case SensorType.Load: 
-          return string.Format("{0:F0}", sensor.Value);
+          return string.Format("{0:F0}%", sensor.Value);
         case SensorType.Temperature:
           if (unitManager.TemperatureUnit == TemperatureUnit.Fahrenheit)
             return string.Format("{0:F0}", 
@@ -164,9 +164,9 @@ namespace OpenHardwareMonitor.GUI {
         case SensorType.Flow:
           return string.Format("{0:F1}", 1e-3f * sensor.Value);
         case SensorType.Control:
-          return string.Format("{0:F0}", sensor.Value);
+          return string.Format("{0:F0}%", sensor.Value);
         case SensorType.Level:
-          return string.Format("{0:F0}", sensor.Value);
+          return string.Format("{0:F0}%", sensor.Value);
         case SensorType.Power:
           return string.Format("{0:F0}", sensor.Value);
         case SensorType.Data:
@@ -183,7 +183,8 @@ namespace OpenHardwareMonitor.GUI {
       for (int i = 0; i < text.Length; i++)
         if ((text[i] >= '0' && text[i] <= '9') || text[i] == '-')
           count++;
-      bool small = count > 2;
+      // Use the smaller font for 3+ digits, or for values like "43%" / "100%".
+      bool small = count > 2 || text.Length > 2;
 
       graphics.Clear(Color.Black);
       TextRenderer.DrawText(graphics, text, small ? smallFont : font,
